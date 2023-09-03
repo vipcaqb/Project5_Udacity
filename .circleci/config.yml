@@ -154,7 +154,7 @@ jobs:
       - install_ansible
       - install-kubectl
       - add_ssh_keys:
-          fingerprints: [a2:f5:cc:b8:75:05:8b:28:45:63:85:3f:e2:98:11:38]
+          fingerprints: [28:f7:97:ce:73:4e:17:f6:e3:35:fd:22:0c:d4:0f:4a]
       - attach_workspace:
           at: ~/
       - run:
@@ -173,7 +173,7 @@ jobs:
       - install_ansible
       - install-kubectl
       - add_ssh_keys:
-          fingerprints: [a2:f5:cc:b8:75:05:8b:28:45:63:85:3f:e2:98:11:38]
+          fingerprints: [28:f7:97:ce:73:4e:17:f6:e3:35:fd:22:0c:d4:0f:4a]
       - attach_workspace:
           at: ~/
       - run:
@@ -208,7 +208,7 @@ jobs:
       - install_awscli
       - install_ansible
       - add_ssh_keys:
-          fingerprints: [a2:f5:cc:b8:75:05:8b:28:45:63:85:3f:e2:98:11:38]
+          fingerprints: [28:f7:97:ce:73:4e:17:f6:e3:35:fd:22:0c:d4:0f:4a]
       - attach_workspace:
           at: ~/
       - run:
@@ -228,11 +228,11 @@ workflows:
             - test-build
           filters:
             branches:
-              only: [ main ]
+              only: [ master ]
       - deploy-infrastructure:
           filters:
             branches:
-              only: [ main ]
+              only: [ master ]
       - configure-infrastructure:
           requires:
             - deploy-infrastructure
