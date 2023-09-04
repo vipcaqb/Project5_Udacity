@@ -28,35 +28,6 @@ The CloudFormation Deployment can be broken down into four Parts:
 - **NodeGroup**, each NodeGroup has a set of rules to define how instances are operated and created for the EKS-Cluster
 - **Management** is needed to configure and manage the Cluster and its deployments and services. I created two management hosts for extra redundancy if one of them fails.
 
-#### List of deployed Stacks:
-
-
-#### List of deployed Instances:
-
-
-## CircleCi - CI/CD Pipelines
-
-I used CircleCi to create a CI/CD  to test and deploy changes manually before they get deployed automatically to the Cluster using Ansible.
-
-#### From Zero to Hero demonstration:
-
-
-
-## Linting using Pylint and Hadolint
-
-Linting is used to check if the Application and Dockerfile is syntactically correct.
-This process makes sure that the code quality is always as good as possible.
-
-#### This is the output when the step fails:
-
-
-
-
-#### This is the output when the step passes:
-
-
-
-## Project Scope
 
 ## Environment Variables
 
@@ -75,8 +46,9 @@ To run this project, you will need to add the following environment variables to
 
 After the EKS-Cluster has been successfully configured using Ansible within the CI/CD Pipeline, I checked the deployment and service as follows:
 
+List of screenshots:
+./screenshots
 
-
-Public LB DNS: http://a7b40c22bbbc14bf396849c2350651fe-1129320932.us-east-1.elb.amazonaws.com/
+Public LB DNS: http://a559042eabd0b4aa69162af44a742ab4-685787931.us-east-1.elb.amazonaws.com/
 
 
