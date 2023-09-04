@@ -136,7 +136,7 @@ jobs:
             aws ec2 describe-instances \
               --region "${AWS_DEFAULT_REGION}" \
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
-              --filters "Name=tag:Name,Values=${ENVIRONMENT_NAME}-management*" \
+              --filters "Name=tag:Name,Values=${ENVIRONMENT_NAME}-project-management*" \
               --output text >> ~/project/ansible/inventory.txt
             cat ~/project/ansible/inventory.txt
       - persist_to_workspace:
