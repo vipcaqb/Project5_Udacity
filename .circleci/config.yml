@@ -127,23 +127,23 @@ jobs:
               --stack-name "${ENVIRONMENT_NAME}-eks-management" \
               --region ${AWS_DEFAULT_REGION} \
               --parameter-overrides file://cloudformation/management-parameters.json \
-              --output text >> ~/checkIfDeployed.txt
-            cat ~/checkIfDeployed.txt
+              --output text >> ~/project/ansible/checkIfDeployed.txt
+            cat ~/project/ansible/checkIfDeployed.txt
       - run:
           name: Extract the IPs of the management instances for Ansible
           command: |
-            echo [management] > ~/inventory.txt
+            echo [management] > ~/project/ansible/inventory.txt
             aws ec2 describe-instances \
               --region "${AWS_DEFAULT_REGION}" \
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
               --filters "Name=tag:Name,Values=${ENVIRONMENT_NAME}-management*" \
-              --output text >> ~/inventory.txt
-            cat ~/inventory.txt
+              --output text >> ~/project/ansible/inventory.txt
+            cat ~/project/ansible/inventory.txt
       - persist_to_workspace:
           root: ~/
           paths:
-            - inventory.txt
-            - checkIfDeployed.txt
+            - project/ansible/inventory.txt
+            - project/ansible/checkIfDeployed.txt
 
   configure-infrastructure:
     docker:
@@ -160,9 +160,8 @@ jobs:
       - run:
           name: Configure server
           command: |
-            cat ~/inventory.txt
-            cd ansible
-            ansible-playbook -i ~/inventory.txt configure-server.yml
+            cat ~/project/ansible/inventory.txt
+            ansible-playbook -i ~/project/ansible/inventory.txt ~/project/ansible/configure-server.yml
 
   configure-cluster:
     docker:
@@ -179,26 +178,26 @@ jobs:
       - run:
           name: Configure server
           command: |
-            cat ~/inventory.txt
+            cat ~/project/ansible/inventory.txt
             cd ansible
-            ansible-playbook -i ~/inventory.txt configure-cluster.yml
+            ansible-playbook -i ~/project/ansible/inventory.txt ~/project/ansible/configure-cluster.yml
       - run:
           name: Wait for LoadBalancer's domain to become reachable
           command: |
-            cat ~/inventory.txt
+            cat ~/project/ansible/inventory.txt
             echo "Wait 60 seconds..."
             sleep 60
       - run:
           name: Display the LoadBalancer's DNS name
           command: |
-            cat ~/inventory.txt
+            cat ~/project/ansible/inventory.txt
             cd ansible
-            ansible-playbook -i ~/inventory.txt save-elb-dns.yml
-            cat ~/elb_dns.txt
+            ansible-playbook -i ~/project/ansible/inventory.txt ~/project/ansible/save-elb-dns.yml
+            cat ~/project/ansible/elb_dns.txt
       - persist_to_workspace:
           root: ~/
           paths:
-            - elb_dns.txt
+            - project/ansible/elb_dns.txt
 
   deploy-docker:
     docker:
@@ -214,9 +213,9 @@ jobs:
       - run:
           name: Deploy newest Docker Image
           command: |
-            cat ~/inventory.txt
+            cat ~/project/ansible/inventory.txt
             cd ansible
-            ansible-playbook -i ~/inventory.txt deploy-app.yml
+            ansible-playbook -i ~/project/ansible/inventory.txt ~/project/ansible/deploy-app.yml
           no_output_timeout: 2m
 
 workflows:
