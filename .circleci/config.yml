@@ -34,134 +34,134 @@ commands:
             export PATH=$PATH:/usr/local/bin/kubectl
 
 jobs:
-  # test-build:
-  #   docker:
-  #     - image: python:3.7.3-stretch
-  #   steps:
-  #     - checkout
-  #     - restore_cache:
-  #         keys:
-  #           - v1-dependencies-{{ checksum "requirements.txt" }}
-  #           - v1-dependencies-
-  #     - run:
-  #         name: install dependencies
-  #         command: |
-  #           python3 -m venv venv
-  #           . venv/bin/activate
-  #           make install
-  #     - run:
-  #         name: run lint
-  #         command: |
-  #           . venv/bin/activate
-  #           make lint
-  #     - save_cache:
-  #         paths:
-  #           - ./venv
-  #         key: v1-dependencies-{{ checksum "requirements.txt" }}
+  test-build:
+    docker:
+      - image: python:3.7.3-stretch
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "requirements.txt" }}
+            - v1-dependencies-
+      - run:
+          name: install dependencies
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            make install
+      - run:
+          name: run lint
+          command: |
+            . venv/bin/activate
+            make lint
+      - save_cache:
+          paths:
+            - ./venv
+          key: v1-dependencies-{{ checksum "requirements.txt" }}
 
-  # upload-docker:
-  #   docker:
-  #     - image: circleci/golang:1.15
-  #   working_directory: ~/repo
-  #   steps:
-  #     - checkout
-  #     - setup_remote_docker:
-  #         version: 19.03.13
-  #     - run:
-  #         name: Build docker container
-  #         command: |
-  #           docker build --tag=$DOCKER_IMAGE_NAME .
-  #           docker image ls
-  #     - run:
-  #         name: Upload Docker to Dockerhub
-  #         command: |
-  #           echo "Docker ID and Image: $DOCKER_IMAGE_NAME"
-  #           docker login -u="$DOCKERHUB_USERNAME" -p="$DOCKERHUB_PASSWORD"
-  #           docker tag $DOCKER_IMAGE_NAME $DOCKERHUB_USERNAME/$DOCKER_IMAGE_NAME:$CIRCLE_WORKFLOW_ID
-  #           docker push $DOCKERHUB_USERNAME/$DOCKER_IMAGE_NAME:$CIRCLE_WORKFLOW_ID
+  upload-docker:
+    docker:
+      - image: circleci/golang:1.15
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 19.03.13
+      - run:
+          name: Build docker container
+          command: |
+            docker build --tag=$DOCKER_IMAGE_NAME .
+            docker image ls
+      - run:
+          name: Upload Docker to Dockerhub
+          command: |
+            echo "Docker ID and Image: $DOCKER_IMAGE_NAME"
+            docker login -u="$DOCKERHUB_USERNAME" -p="$DOCKERHUB_PASSWORD"
+            docker tag $DOCKER_IMAGE_NAME $DOCKERHUB_USERNAME/$DOCKER_IMAGE_NAME:$CIRCLE_WORKFLOW_ID
+            docker push $DOCKERHUB_USERNAME/$DOCKER_IMAGE_NAME:$CIRCLE_WORKFLOW_ID
 
-  # deploy-infrastructure:
-  #   docker:
-  #     - image: amazon/aws-cli
-  #   steps:
-  #     - checkout
-  #     - run:
-  #         name: Install dependencies
-  #         command: yum install -y tar gzip
-  #     - run:
-  #         name: Ensure EKS network exists
-  #         command: |
-  #           aws cloudformation deploy \
-  #             --template-file cloudformation/network.yml \
-  #             --tags project=${ENVIRONMENT_NAME}-project \
-  #             --stack-name "${ENVIRONMENT_NAME}-eks-network" \
-  #             --region ${AWS_DEFAULT_REGION} \
-  #             --parameter-overrides file://cloudformation/network-parameters.json
-  #     - run:
-  #         name: Ensure EKS Cluster exists
-  #         command: |
-  #           aws cloudformation deploy \
-  #             --template-file cloudformation/cluster.yml \
-  #             --tags project=${ENVIRONMENT_NAME}-project \
-  #             --stack-name "${ENVIRONMENT_NAME}-eks-cluster" \
-  #             --region ${AWS_DEFAULT_REGION} \
-  #             --parameter-overrides file://cloudformation/cluster-parameters.json \
-  #             --capabilities CAPABILITY_NAMED_IAM
-  #         no_output_timeout: 15m
-  #     - run:
-  #         name: Ensure Nodegroup exists
-  #         command: |
-  #           aws cloudformation deploy \
-  #             --template-file cloudformation/nodegroup.yml \
-  #             --tags project=${ENVIRONMENT_NAME}-project \
-  #             --stack-name "${ENVIRONMENT_NAME}-eks-nodegroup" \
-  #             --region ${AWS_DEFAULT_REGION} \
-  #             --parameter-overrides file://cloudformation/nodegroup-parameters.json \
-  #             --capabilities CAPABILITY_NAMED_IAM
-  #     - run:
-  #         name: Ensure management instances exists
-  #         command: |
-  #           aws cloudformation deploy \
-  #             --template-file cloudformation/management.yml \
-  #             --tags project=${ENVIRONMENT_NAME}-project \
-  #             --stack-name "${ENVIRONMENT_NAME}-eks-management" \
-  #             --region ${AWS_DEFAULT_REGION} \
-  #             --parameter-overrides file://cloudformation/management-parameters.json \
-  #             --output text >> ~/project/ansible/checkIfDeployed.txt
-  #           cat ~/project/ansible/checkIfDeployed.txt
-  #     - run:
-  #         name: Extract the IPs of the management instances for Ansible
-  #         command: |
-  #           echo [management] > ~/project/ansible/inventory.txt
-  #           aws ec2 describe-instances \
-  #             --region "${AWS_DEFAULT_REGION}" \
-  #             --query 'Reservations[*].Instances[*].PublicIpAddress' \
-  #             --filters "Name=tag:Name,Values=${ENVIRONMENT_NAME}-management*" \
-  #             --output text >> ~/project/ansible/inventory.txt
-  #           cat ~/project/ansible/inventory.txt
-  #     - persist_to_workspace:
-  #         root: ~/
-  #         paths:
-  #           - project/ansible/inventory.txt
-  #           - project/ansible/checkIfDeployed.txt
+  deploy-infrastructure:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: yum install -y tar gzip
+      - run:
+          name: Ensure EKS network exists
+          command: |
+            aws cloudformation deploy \
+              --template-file cloudformation/network.yml \
+              --tags project=${ENVIRONMENT_NAME}-project \
+              --stack-name "${ENVIRONMENT_NAME}-eks-network" \
+              --region ${AWS_DEFAULT_REGION} \
+              --parameter-overrides file://cloudformation/network-parameters.json
+      - run:
+          name: Ensure EKS Cluster exists
+          command: |
+            aws cloudformation deploy \
+              --template-file cloudformation/cluster.yml \
+              --tags project=${ENVIRONMENT_NAME}-project \
+              --stack-name "${ENVIRONMENT_NAME}-eks-cluster" \
+              --region ${AWS_DEFAULT_REGION} \
+              --parameter-overrides file://cloudformation/cluster-parameters.json \
+              --capabilities CAPABILITY_NAMED_IAM
+          no_output_timeout: 15m
+      - run:
+          name: Ensure Nodegroup exists
+          command: |
+            aws cloudformation deploy \
+              --template-file cloudformation/nodegroup.yml \
+              --tags project=${ENVIRONMENT_NAME}-project \
+              --stack-name "${ENVIRONMENT_NAME}-eks-nodegroup" \
+              --region ${AWS_DEFAULT_REGION} \
+              --parameter-overrides file://cloudformation/nodegroup-parameters.json \
+              --capabilities CAPABILITY_NAMED_IAM
+      - run:
+          name: Ensure management instances exists
+          command: |
+            aws cloudformation deploy \
+              --template-file cloudformation/management.yml \
+              --tags project=${ENVIRONMENT_NAME}-project \
+              --stack-name "${ENVIRONMENT_NAME}-eks-management" \
+              --region ${AWS_DEFAULT_REGION} \
+              --parameter-overrides file://cloudformation/management-parameters.json \
+              --output text >> ~/project/ansible/checkIfDeployed.txt
+            cat ~/project/ansible/checkIfDeployed.txt
+      - run:
+          name: Extract the IPs of the management instances for Ansible
+          command: |
+            echo [management] > ~/project/ansible/inventory.txt
+            aws ec2 describe-instances \
+              --region "${AWS_DEFAULT_REGION}" \
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --filters "Name=tag:Name,Values=${ENVIRONMENT_NAME}-management*" \
+              --output text >> ~/project/ansible/inventory.txt
+            cat ~/project/ansible/inventory.txt
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/ansible/inventory.txt
+            - project/ansible/checkIfDeployed.txt
 
-  # configure-infrastructure:
-  #   docker:
-  #     - image: cimg/base:stable
-  #   steps:
-  #     - checkout
-  #     - install_awscli
-  #     - install_ansible
-  #     - install-kubectl
-  #     - add_ssh_keys:
-  #         fingerprints: [28:f7:97:ce:73:4e:17:f6:e3:35:fd:22:0c:d4:0f:4a]
-  #     - attach_workspace:
-  #         at: ~/
-  #     - run:
-  #         name: Configure server
-  #         command: |
-  #           cat ~/project/ansible/inventory.txt
-  #           ansible-playbook -i ~/project/ansible/inventory.txt ~/project/ansible/configure-server.yml
+  configure-infrastructure:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - install_awscli
+      - install_ansible
+      - install-kubectl
+      - add_ssh_keys:
+          fingerprints: [28:f7:97:ce:73:4e:17:f6:e3:35:fd:22:0c:d4:0f:4a]
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Configure server
+          command: |
+            cat ~/project/ansible/inventory.txt
+            ansible-playbook -i ~/project/ansible/inventory.txt ~/project/ansible/configure-server.yml
 
   configure-cluster:
     docker:
@@ -221,24 +221,24 @@ jobs:
 workflows:
   default:
     jobs:
-      - test-build
-      - upload-docker:
-          requires:
-            - test-build
-          filters:
-            branches:
-              only: [ master ]
-      - deploy-infrastructure:
-          filters:
-            branches:
-              only: [ master ]
-      - configure-infrastructure:
-          requires:
-            - deploy-infrastructure
+      # - test-build
+      # - upload-docker:
+      #     requires:
+      #       - test-build
+      #     filters:
+      #       branches:
+      #         only: [ master ]
+      # - deploy-infrastructure:
+      #     filters:
+      #       branches:
+      #         only: [ master ]
+      # - configure-infrastructure:
+      #     requires:
+      #       - deploy-infrastructure
       - configure-cluster:
-          requires:
-            - configure-infrastructure
-            - upload-docker
+          # requires:
+          #   - configure-infrastructure
+          #   - upload-docker
       - deploy-docker:
           requires:
             - configure-cluster
